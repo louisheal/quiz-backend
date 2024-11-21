@@ -11,7 +11,8 @@ TOKEN_URL = "https://id.twitch.tv/oauth2/token"
 AUTHORIZATION_URL = "https://id.twitch.tv/oauth2/authorize"
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
-key = OctKey.import_key(os.getenv("JWT_SECRET"))
+jwt_secret = os.getenv("JWT_SECRET",)
+key = OctKey.import_key(jwt_secret)
 ALGORITHM = "HS256"
 
 
