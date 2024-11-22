@@ -16,11 +16,9 @@ key = OctKey.import_key(jwt_secret)
 ALGORITHM = "HS256"
 
 def get_current_user(token: str):
-    try:
-        claims = verify_token(token)
-        return claims["user_info"]
-    except HTTPException as e:
-        raise HTTPException(status_code=401, detail="Invalid token") from e
+    claims = verify_token(token)
+    return claims["user_info"]
+
 
 def _create_token(user_data: dict, expires_delta: Optional[timedelta], default_expire: timedelta) -> str:
     to_encode = {"user_info": user_data, "uuid": str(uuid.uuid4())}
