@@ -6,7 +6,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.helpers.oauth import TOKEN_URL, TokenService
+from app.helpers.jwt_token import TOKEN_URL, create_access_token, create_refresh_token, verify_token
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ class AuthCode(BaseModel):
 
 
 @router.post("/token")
-async def auth(auth_code: AuthCode):
+async def request_jwt_token(auth_code: AuthCode):
     """
     Handles the OAuth2 callback from Twitch and retrieves the user's information.
 
@@ -61,8 +61,8 @@ async def auth(auth_code: AuthCode):
     user_data = user_response.json()
 
     # Generate JWT and Refresh Token
-    token = TokenService.create_access_token(user_data)
-    refresh_token = TokenService.create_refresh_token(user_data)
+    token = create_access_token(user_data)
+    refresh_token = create_refresh_token(user_data)
 
     return JSONResponse(content={"token": token, "refresh_token": refresh_token})
 
@@ -83,10 +83,10 @@ async def refresh_jwt_token(refresh_token: RefreshToken):
     - `JSONResponse`: A JSON response containing the new JWT and refresh token.
     """
     try:
-        claims = TokenService.verify_token(refresh_token.refresh_token)
+        claims = verify_token(refresh_token.refresh_token)
         user_data = claims["user_info"]
-        new_jwt_token = TokenService.create_access_token(user_data)
-        new_refresh_token = TokenService.create_refresh_token(user_data)
+        new_jwt_token = create_access_token(user_data)
+        new_refresh_token = create_refresh_token(user_data)
         return JSONResponse(content={"token": new_jwt_token, "refresh_token": new_refresh_token})
     except HTTPException as e:
         raise HTTPException(status_code=401, detail="Invalid refresh token") from e
@@ -96,7 +96,7 @@ class VerifyToken(BaseModel):
 
 
 @router.post("/me")
-async def verify_token(token: VerifyToken):
+async def verify_jwt_token(token: VerifyToken):
     """
     Verifies the provided JWT token and returns the user information.
 
@@ -107,7 +107,7 @@ async def verify_token(token: VerifyToken):
     - `JSONResponse`: A JSON response containing the user information if the token is valid.
     """
     try:
-        claims = TokenService.verify_token(token.token)
+        claims = verify_token(token.token)
         user_data = claims["user_info"]
         return JSONResponse(content={"user_info": user_data})
     except HTTPException as e:
