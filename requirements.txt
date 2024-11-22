@@ -1,0 +1,5 @@
+fastapi~=0.115.5
+requests~=2.32.3
+python-dotenv~=1.0.1
+joserfc~=1.0.0
+pydantic~=2.10.0
